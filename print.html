@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>셔틀버스 노선도 — 인쇄용 (A4 가로)</title>
+
+<!-- ═══════════════════════════════════════════════════════════
+     ▼ 카카오 JavaScript 키 (web_route_map.html 과 동일한 키)
+     ═══════════════════════════════════════════════════════════ -->
+<script>
+  const KAKAO_APP_KEY = "3e728a6e83cb38eec3d7a2321a5f0847";
+</script>
+
+<script src="route_data.js"></script>
+<style>
+  @page{size:A4 landscape;margin:7mm}
+
+  *{box-sizing:border-box;margin:0;padding:0;
+    -webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{font-family:'Malgun Gothic','맑은 고딕',sans-serif;background:#dfe3e8;color:#000}
+
+  /* ── 화면 전용 조작 바 ── */
+  .bar{position:sticky;top:0;z-index:99;background:#1f2937;color:#fff;padding:11px 18px;
+       display:flex;align-items:center;gap:14px;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+  .bar b{font-size:14px}
+  .bar span{color:#cbd5e1;font-size:12px}
+  .bar button{margin-left:auto;padding:9px 20px;font-family:inherit;font-size:14px;font-weight:800;
+              background:#fbbf24;color:#111;border:none;border-radius:6px;cursor:pointer}
+  .bar button:hover{background:#f59e0b}
+
+  /* ── A4 가로 1장 = 1코스 ── */
+  .page{width:283mm;height:196mm;margin:16px auto;background:#fff;padding:0;
+        display:flex;flex-direction:column;overflow:hidden;box-shadow:0 3px 14px rgba(0,0,0,.22)}
+
+  .ttl{flex:0 0 auto;display:flex;align-items:center;gap:11mm;padding:3.5mm 5mm;border-bottom:3px solid #000}
+  .badge{flex:0 0 auto;padding:2mm 5mm;border-radius:2mm;color:#fff;font-size:19pt;font-weight:800;
+         letter-spacing:-.5pt;line-height:1.1}
+  .ttl h1{font-size:23pt;font-weight:800;letter-spacing:-1pt;line-height:1.1}
+  .ttl .sub{font-size:12.5pt;font-weight:700;color:#333;margin-top:1mm}
+  .ttl .run{margin-left:auto;text-align:right;font-size:15pt;font-weight:800;line-height:1.3;white-space:nowrap}
+  .ttl .run em{display:block;font-style:normal;font-size:10.5pt;font-weight:600;color:#444}
+
+  .body{flex:1 1 auto;display:flex;min-height:0}
+  .mapbox{flex:0 0 137mm;border-right:2.5px solid #000;position:relative;background:#eef1f4}
+  .mapbox .mp{position:absolute;inset:0}
+  .tbl{flex:1 1 auto;padding:2.5mm 3mm}
+
+  .cols{column-gap:4mm;column-rule:1px dashed #b0b0b0;height:100%}
+  .cols.c2{column-count:2} .cols.c3{column-count:3}
+
+  .row{display:flex;align-items:center;gap:2mm;padding:.85mm 0;break-inside:avoid;
+       border-bottom:.5px solid #dcdcdc}
+  .row .n{flex:0 0 6.6mm;height:6.6mm;border-radius:50%;color:#fff;font-size:10pt;font-weight:800;
+          display:flex;align-items:center;justify-content:center;line-height:1}
+  .row .s{flex:1 1 auto;font-size:12pt;font-weight:700;letter-spacing:-.7pt;line-height:1.15;
+          overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .row .t{flex:0 0 auto;font-size:12pt;font-weight:800;font-variant-numeric:tabular-nums}
+  .row.hub{background:#fff3cd}
+  .row.hub .s{font-weight:800}
+
+  .foot{flex:0 0 auto;padding:2mm 5mm;border-top:2px solid #000;font-size:10.5pt;font-weight:700;
+        display:flex;gap:8mm;color:#222}
+  .foot .r{margin-left:auto;font-weight:600;color:#555}
+
+  .warn{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+        text-align:center;padding:10mm;font-size:12pt;font-weight:700;color:#b91c1c;line-height:1.8;
+        background:#fff7f7}
+
+  @media print{
+    .bar{display:none}
+    body{background:#fff}
+    .page{margin:0;box-shadow:none;width:100%;height:100%;page-break-after:always}
+    .page:last-child{page-break-after:auto}
+  }
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <b>셔틀버스 노선도 · 인쇄용</b>
+  <span>A4 가로 3장 (코스별 1장) · 인쇄 설정에서 <b>배경 그래픽</b>을 켜주세요</span>
+  <button onclick="window.print()">인쇄 / PDF 저장</button>
+</div>
+
+<div id="out"></div>
+
+<script>
+(function(){
+  const out=document.getElementById('out');
+  const keyOK = KAKAO_APP_KEY && KAKAO_APP_KEY.indexOf('여기에')!==0;
+
+  ROUTE_DATA.routes.forEach((r,i)=>{
+    const t0=r.stops[0].time, t1=r.stops[r.stops.length-1].time;
+    const rows=r.stops.map(s=>{
+      const hub = s.name==='복지관';
+      return '<div class="row'+(hub?' hub':'')+'">'
+        +'<span class="n" style="background:'+r.color+'">'+s.seq+'</span>'
+        +'<span class="s">'+s.name+'</span>'
+        +'<span class="t">'+s.time+'</span></div>';
+    }).join('');
+
+    out.insertAdjacentHTML('beforeend',
+      '<div class="page">'
+      +'<div class="ttl">'
+        +'<div class="badge" style="background:'+r.color+'">'+r.name+'</div>'
+        +'<div><h1>셔틀버스 운행 노선도</h1><div class="sub">'+r.sub+' · 북원노인종합복지관</div></div>'
+        +'<div class="run">'+t0+' ~ '+t1+'<em>정차 '+r.stops.length+'개소</em></div>'
+      +'</div>'
+      +'<div class="body">'
+        +'<div class="mapbox"><div class="mp" id="mp'+i+'"></div></div>'
+        +'<div class="tbl"><div class="cols '+(r.stops.length>28?'c3':'c2')+'">'+rows+'</div></div>'
+      +'</div>'
+      +'<div class="foot"><span>문의 · 북원노인종합복지관</span>'
+        +'<span>노란색 칸은 복지관(출발·도착)입니다</span>'
+        +'<span class="r">도착시간은 교통상황에 따라 다소 달라질 수 있습니다</span></div>'
+      +'</div>');
+  });
+
+  if(!keyOK){
+    ROUTE_DATA.routes.forEach((r,i)=>{
+      document.getElementById('mp'+i).innerHTML=
+        '<div class="warn">지도를 표시하려면<br>이 파일 상단의 카카오 JavaScript 키를<br>입력해주세요.</div>';
+    });
+    return;
+  }
+
+  const sc=document.createElement('script');
+  sc.src='//dapi.kakao.com/v2/maps/sdk.js?appkey='+KAKAO_APP_KEY+'&autoload=false';
+  document.head.appendChild(sc);
+  sc.onload=()=>kakao.maps.load(()=>{
+    ROUTE_DATA.routes.forEach((r,i)=>{
+      const el=document.getElementById('mp'+i);
+      const map=new kakao.maps.Map(el,{center:new kakao.maps.LatLng(37.39,127.955),level:7});
+      const path=r.stops.map(s=>new kakao.maps.LatLng(s.lat,s.lng));
+
+      new kakao.maps.Polyline({map:map,path:path,strokeWeight:6,strokeColor:r.color,
+        strokeOpacity:.9,strokeStyle:'solid',endArrow:true});
+
+      r.stops.forEach((s,j)=>{
+        const d=document.createElement('div');
+        d.style.cssText='width:6.4mm;height:6.4mm;border-radius:50%;background:'+r.color
+          +';color:#fff;font:800 9.5pt/6.4mm Malgun Gothic,sans-serif;text-align:center;'
+          +'border:1.6px solid #fff;box-shadow:0 0 2px rgba(0,0,0,.65)';
+        d.textContent=s.seq;
+        new kakao.maps.CustomOverlay({map:map,position:path[j],content:d,yAnchor:.5});
+      });
+
+      const b=new kakao.maps.LatLngBounds();
+      path.forEach(p=>b.extend(p));
+      map.setBounds(b,14,14,14,14);
+    });
+  });
+})();
+</script>
+</body>
+</html>

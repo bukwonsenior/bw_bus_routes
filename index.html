@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>북원노인종합복지관 셔틀버스 노선안내</title>
+
+<!-- ═══════════════════════════════════════════════════════════
+     ▼ 설정 : 카카오 JavaScript 키를 넣어주세요
+       (developers.kakao.com > 내 애플리케이션 > 앱 키 > JavaScript 키)
+       ※ 플랫폼 > Web 에 복지관 홈페이지 도메인을 등록해야 지도가 표시됩니다.
+     ═══════════════════════════════════════════════════════════ -->
+<script>
+  const KAKAO_APP_KEY = "3e728a6e83cb38eec3d7a2321a5f0847";
+</script>
+
+<script src="route_data.js"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{font-family:'Malgun Gothic','맑은 고딕',-apple-system,'Apple SD Gothic Neo',sans-serif;
+       color:#1a1a1a;background:#fff;display:flex;flex-direction:column;height:100%;overflow:hidden}
+
+  /* ── 헤더 ── */
+  header{flex:0 0 auto;padding:12px 14px 0;border-bottom:1px solid #e3e6ea}
+  h1{font-size:17px;font-weight:800;letter-spacing:-.4px;margin-bottom:2px}
+  h1 span{font-size:12px;font-weight:600;color:#6b7280;letter-spacing:0}
+  .tabs{display:flex;gap:6px;margin-top:10px}
+  .tab{flex:1;padding:11px 4px 12px;border:none;background:#f1f3f5;border-radius:9px 9px 0 0;
+       font-family:inherit;font-size:13.5px;font-weight:700;color:#6b7280;cursor:pointer;
+       border-bottom:3px solid transparent;transition:.15s;line-height:1.35}
+  .tab small{display:block;font-size:10.5px;font-weight:500;opacity:.8;margin-top:2px}
+  .tab.on{background:#fff;color:#111}
+  .tab:hover{background:#e9ecef}
+  .tab.on:hover{background:#fff}
+
+  /* ── 본문 ── */
+  main{flex:1 1 auto;display:flex;min-height:0}
+  #map{flex:1 1 auto;min-height:0;background:#eef1f4}
+  aside{flex:0 0 296px;overflow-y:auto;border-left:1px solid #e3e6ea;background:#fafbfc;
+        -webkit-overflow-scrolling:touch}
+
+  .meta{padding:11px 14px;background:#fff;border-bottom:1px solid #eceff1;
+        font-size:12px;color:#4b5563;display:flex;gap:14px;flex-wrap:wrap}
+  .meta b{color:#111;font-weight:700}
+
+  ul{list-style:none}
+  li{display:flex;align-items:center;gap:10px;padding:9px 13px;border-bottom:1px solid #eef1f3;
+     cursor:pointer;transition:background .1s}
+  li:hover{background:#eef4ff}
+  li.on{background:#e3edff}
+  li:last-child{border-bottom:none}
+  .num{flex:0 0 25px;height:25px;border-radius:50%;color:#fff;font-size:11.5px;font-weight:800;
+       display:flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums}
+  .nm{flex:1;font-size:13.5px;font-weight:600;letter-spacing:-.3px;line-height:1.3}
+  .tm{flex:0 0 auto;font-size:13px;font-weight:800;color:#374151;font-variant-numeric:tabular-nums}
+  .est{display:inline-block;font-size:9.5px;font-weight:700;color:#b45309;background:#fef3c7;
+       border-radius:3px;padding:1px 4px;margin-left:4px;vertical-align:1px}
+
+  footer{flex:0 0 auto;padding:8px 14px;background:#f8f9fa;border-top:1px solid #e3e6ea;
+         font-size:11px;color:#8b95a1;text-align:center;line-height:1.5}
+
+  .bubble{padding:7px 11px;font-size:12.5px;font-weight:700;white-space:nowrap;line-height:1.4}
+  .bubble em{display:block;font-style:normal;font-weight:600;color:#4b5563;font-size:11.5px}
+
+  .err{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+       flex-direction:column;gap:8px;padding:24px;text-align:center;font-size:13px;color:#6b7280;
+       line-height:1.7;background:#f8f9fa}
+  .err b{color:#dc2626;font-size:14px}
+
+  /* ── 모바일 ── */
+  @media (max-width:720px){
+    main{flex-direction:column}
+    #map{flex:0 0 46vh}
+    aside{flex:1 1 auto;border-left:none;border-top:1px solid #e3e6ea;width:100%}
+    h1{font-size:15.5px}
+    .tab{font-size:12.5px;padding:9px 2px 10px}
+    .tab small{font-size:9.5px}
+    li{padding:11px 13px}
+    .nm{font-size:14px}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>셔틀버스 운행 노선 <span>북원노인종합복지관</span></h1>
+  <div class="tabs" id="tabs"></div>
+</header>
+
+<main>
+  <div id="map"></div>
+  <aside>
+    <div class="meta" id="meta"></div>
+    <ul id="list"></ul>
+  </aside>
+</main>
+
+<footer>정류장을 누르면 지도에서 위치를 확인할 수 있습니다 · 도착시간은 교통상황에 따라 달라질 수 있습니다</footer>
+
+<script>
+(function(){
+  const mapEl=document.getElementById('map');
+
+  if(!KAKAO_APP_KEY || KAKAO_APP_KEY.indexOf('여기에')===0){
+    mapEl.style.position='relative';
+    mapEl.innerHTML='<div class="err"><b>카카오 JavaScript 키가 설정되지 않았습니다</b>'
+      +'이 파일 상단의 <code>KAKAO_APP_KEY</code> 값을<br>카카오 개발자센터의 JavaScript 키로 바꿔주세요.</div>';
+    render(0,true); return;
+  }
+
+  const sc=document.createElement('script');
+  sc.src='//dapi.kakao.com/v2/maps/sdk.js?appkey='+KAKAO_APP_KEY+'&autoload=false';
+  sc.onerror=()=>{mapEl.style.position='relative';
+    mapEl.innerHTML='<div class="err"><b>지도를 불러올 수 없습니다</b>네트워크 상태 또는 도메인 등록 여부를 확인해주세요.</div>';
+    render(0,true);};
+  document.head.appendChild(sc);
+  sc.onload=()=>kakao.maps.load(init);
+
+  let map,overlays=[],cur=0,items=[];
+
+  function init(){
+    map=new kakao.maps.Map(mapEl,{center:new kakao.maps.LatLng(37.39,127.955),level:7});
+    map.addControl(new kakao.maps.ZoomControl(),kakao.maps.ControlPosition.RIGHT);
+    render(0);
+  }
+
+  function clear(){overlays.forEach(o=>o.setMap(null));overlays=[]}
+
+  function draw(idx){
+    if(!map) return;
+    clear();
+    const r=ROUTE_DATA.routes[idx];
+    const path=r.stops.map(s=>new kakao.maps.LatLng(s.lat,s.lng));
+
+    // 진행 방향 경로선
+    const line=new kakao.maps.Polyline({path:path,strokeWeight:5,strokeColor:r.color,
+      strokeOpacity:.85,strokeStyle:'solid',endArrow:true});
+    line.setMap(map); overlays.push(line);
+
+    // 번호 마커
+    r.stops.forEach((s,i)=>{
+      const first=r.stops.findIndex(x=>x.id===s.id)===i;
+      const el=document.createElement('div');
+      el.style.cssText='width:25px;height:25px;border-radius:50%;background:'+r.color
+        +';color:#fff;font:800 11.5px/25px Malgun Gothic,sans-serif;text-align:center;'
+        +'box-shadow:0 1px 4px rgba(0,0,0,.4);border:2px solid #fff;cursor:pointer';
+      el.textContent=s.seq;
+      const ov=new kakao.maps.CustomOverlay({position:path[i],content:el,yAnchor:.5,zIndex:first?3:2});
+      ov.setMap(map); overlays.push(ov);
+      el.onclick=e=>{e.stopPropagation();focus(i)};
+    });
+
+    const b=new kakao.maps.LatLngBounds();
+    path.forEach(p=>b.extend(p));
+    map.setBounds(b,30,30,30,30);
+  }
+
+  let bubble=null;
+  function focus(i){
+    const r=ROUTE_DATA.routes[cur],s=r.stops[i];
+    items.forEach(x=>x.classList.remove('on'));
+    if(items[i]){items[i].classList.add('on');
+      items[i].scrollIntoView({block:'nearest',behavior:'smooth'})}
+    if(!map) return;
+    const pos=new kakao.maps.LatLng(s.lat,s.lng);
+    if(bubble) bubble.close();
+    bubble=new kakao.maps.InfoWindow({
+      content:'<div class="bubble">'+s.seq+'. '+s.name+'<em>'+s.time+' 경유</em></div>',
+      position:pos,removable:true});
+    bubble.open(map);
+    map.panTo(pos);
+  }
+
+  function render(idx,noMap){
+    cur=idx;
+    const r=ROUTE_DATA.routes[idx];
+
+    document.getElementById('tabs').innerHTML=ROUTE_DATA.routes.map((x,i)=>
+      '<button class="tab'+(i===idx?' on':'')+'" data-i="'+i+'" style="'
+      +(i===idx?'border-bottom-color:'+x.color+';':'')+'">'+x.name
+      +'<small>'+x.sub+'</small></button>').join('');
+    document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>render(+t.dataset.i,noMap));
+
+    const t0=r.stops[0].time,t1=r.stops[r.stops.length-1].time;
+    document.getElementById('meta').innerHTML=
+      '<span>운행 <b>'+t0+' ~ '+t1+'</b></span><span>정차 <b>'+r.stops.length+'개소</b></span>';
+
+    document.getElementById('list').innerHTML=r.stops.map((s,i)=>{
+      const est=ROUTE_DATA.stops.find(x=>x.id===s.id).conf==='estimated';
+      return '<li data-i="'+i+'"><span class="num" style="background:'+r.color+'">'+s.seq+'</span>'
+        +'<span class="nm">'+s.name+(est?'<span class="est">위치확인</span>':'')+'</span>'
+        +'<span class="tm">'+s.time+'</span></li>';
+    }).join('');
+    items=[...document.querySelectorAll('#list li')];
+    items.forEach(li=>li.onclick=()=>focus(+li.dataset.i));
+
+    if(!noMap) draw(idx);
+  }
+})();
+</script>
+</body>
+</html>
