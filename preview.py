@@ -25,7 +25,7 @@ for ax,r in zip(axes,d['routes']):
     ax.set_title('%s  (%s)  %s~%s'%(r['name'],r['sub'],r['stops'][0]['time'],r['stops'][-1]['time']),
                  fontproperties=fp,fontsize=13,fontweight='bold',pad=11)
     ax.set_aspect(1/0.79); ax.grid(alpha=.22,ls=':'); ax.tick_params(labelsize=7)
-fig.suptitle('노선 좌표 검증 미리보기  —  ■ 빨강 사각 = 좌표 추정(확인 필요)',
+fig.suptitle('노선 좌표 검증 미리보기  —  전 정류장 BIS 실측 좌표 적용',
              fontproperties=fp,fontsize=14,fontweight='bold',y=.99)
 plt.tight_layout(rect=[0,0,1,.96])
 plt.savefig('좌표검증_미리보기.png',dpi=125,bbox_inches='tight',facecolor='w')
