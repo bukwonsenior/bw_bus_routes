@@ -99,5 +99,17 @@ with open(os.path.join(OUT,'routes_수정본.csv'),'w',newline='',encoding='utf-
         for i,(sid,t) in enumerate(seq):
             w.writerow([name,i+1,smap[sid][1],t,sid,smap[sid][4],smap[sid][6]])
 
+# ── 캐시 무효화: 데이터가 바뀌면 HTML의 route_data.js 버전을 자동 갱신 ──
+import hashlib, re as _re
+_js=open(os.path.join(OUT,'route_data.js'),encoding='utf-8').read()
+_ver=hashlib.md5(_js.encode('utf-8')).hexdigest()[:8]
+for _f in ('index.html','print.html'):
+    _p=os.path.join(OUT,_f)
+    if not os.path.exists(_p): continue
+    _h=open(_p,encoding='utf-8').read()
+    _n=_re.sub(r'route_data\.js(\?v=[0-9a-f]+)?', 'route_data.js?v='+_ver, _h)
+    if _n!=_h: open(_p,'w',encoding='utf-8').write(_n)
+print('캐시 버전:',_ver)
+
 print('stops',len(STOPS),'| ',' / '.join('%s %d개소'%(n,len(s)) for _,n,_,_,s in ROUTES))
 print('좌표 추정:',[s[1] for s in STOPS if s[6]=='estimated'])
