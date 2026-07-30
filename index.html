@@ -2,13 +2,11 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>북원노인종합복지관 셔틀버스 노선안내</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>북원노인종합복지관 셔틀버스 운행 노선</title>
 
 <!-- ═══════════════════════════════════════════════════════════
-     ▼ 설정 : 카카오 JavaScript 키를 넣어주세요
-       (developers.kakao.com > 내 애플리케이션 > 앱 키 > JavaScript 키)
-       ※ 플랫폼 > Web 에 복지관 홈페이지 도메인을 등록해야 지도가 표시됩니다.
+     ▼ 카카오 JavaScript 키
      ═══════════════════════════════════════════════════════════ -->
 <script>
   const KAKAO_APP_KEY = "3e728a6e83cb38eec3d7a2321a5f0847";
@@ -17,115 +15,151 @@
 <script src="route_data.js"></script>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-  html,body{height:100%}
   body{font-family:'Malgun Gothic','맑은 고딕',-apple-system,'Apple SD Gothic Neo',sans-serif;
-       color:#1a1a1a;background:#fff;display:flex;flex-direction:column;height:100%;overflow:hidden}
+       color:#222;background:#fff;line-height:1.5}
 
-  /* ── 헤더 ── */
-  header{flex:0 0 auto;padding:12px 14px 0;border-bottom:1px solid #e3e6ea}
-  h1{font-size:17px;font-weight:800;letter-spacing:-.4px;margin-bottom:2px}
-  h1 span{font-size:12px;font-weight:600;color:#6b7280;letter-spacing:0}
-  .tabs{display:flex;gap:6px;margin-top:10px}
-  .tab{flex:1;padding:11px 4px 12px;border:none;background:#f1f3f5;border-radius:9px 9px 0 0;
-       font-family:inherit;font-size:13.5px;font-weight:700;color:#6b7280;cursor:pointer;
-       border-bottom:3px solid transparent;transition:.15s;line-height:1.35}
-  .tab small{display:block;font-size:10.5px;font-weight:500;opacity:.8;margin-top:2px}
-  .tab.on{background:#fff;color:#111}
-  .tab:hover{background:#e9ecef}
-  .tab.on:hover{background:#fff}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 4px 18px}
+
+  /* ── 상단 배너 ── */
+  .hero{background:linear-gradient(100deg,#EE7A16 0%,#F59B23 62%,#F8B03A 100%);
+        border-radius:10px;padding:26px 30px 28px;color:#fff;margin-bottom:16px}
+  .hero .chip{display:inline-block;background:rgba(255,255,255,.26);border-radius:20px;
+              padding:4px 15px;font-size:12.5px;font-weight:700;margin-bottom:11px}
+  .hero h2{font-size:27px;font-weight:800;letter-spacing:-1px;margin-bottom:9px}
+  .hero p{font-size:14px;font-weight:500;line-height:1.75;opacity:.97;max-width:860px}
+
+  /* ── 안내 박스 ── */
+  .guides{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-bottom:20px}
+  .g{background:#FEF6EC;border-left:4px solid #EE7A16;border-radius:5px;padding:14px 17px}
+  .g b{display:block;font-size:14px;font-weight:800;color:#D96A0B;margin-bottom:6px}
+  .g span{font-size:12.8px;color:#5a5a5a;line-height:1.65}
+
+  /* ── 코스 탭 ── */
+  .tabs{display:flex;gap:8px}
+  .tab{flex:1;padding:13px 6px 14px;border:2px solid transparent;border-bottom:none;
+       border-radius:9px 9px 0 0;font-family:inherit;font-size:15px;font-weight:800;
+       cursor:pointer;transition:.15s;line-height:1.3;letter-spacing:-.4px}
+  .tab small{display:block;font-size:11.5px;font-weight:600;opacity:.92;margin-top:3px}
 
   /* ── 본문 ── */
-  main{flex:1 1 auto;display:flex;min-height:0}
-  #map{flex:1 1 auto;min-height:0;background:#eef1f4}
-  aside{flex:0 0 296px;overflow-y:auto;border-left:1px solid #e3e6ea;background:#fafbfc;
-        -webkit-overflow-scrolling:touch}
+  .panel{border:2px solid;border-radius:0 0 10px 10px;overflow:hidden;background:#fff}
+  main{display:flex;height:560px}
+  #map{flex:1 1 auto;background:#eef1f4;position:relative;min-width:0}
+  aside{flex:0 0 310px;display:flex;flex-direction:column;border-left:1px solid #e6e9ec;background:#fafbfc}
 
-  .meta{padding:11px 14px;background:#fff;border-bottom:1px solid #eceff1;
-        font-size:12px;color:#4b5563;display:flex;gap:14px;flex-wrap:wrap}
-  .meta b{color:#111;font-weight:700}
+  .meta{padding:11px 15px;background:#fff;border-bottom:1px solid #eceff1;font-size:13px;
+        color:#444;display:flex;align-items:center;gap:15px;flex-wrap:wrap}
+  .meta b{font-weight:800;color:#111}
+  .meta .all{margin-left:auto;padding:5px 11px;border:1px solid #cfd4d9;background:#fff;
+             border-radius:5px;font-family:inherit;font-size:12px;font-weight:700;
+             color:#444;cursor:pointer;white-space:nowrap}
+  .meta .all:hover{background:#f1f3f5}
 
-  ul{list-style:none}
-  li{display:flex;align-items:center;gap:10px;padding:9px 13px;border-bottom:1px solid #eef1f3;
-     cursor:pointer;transition:background .1s}
-  li:hover{background:#eef4ff}
-  li.on{background:#e3edff}
-  li:last-child{border-bottom:none}
-  .num{flex:0 0 25px;height:25px;border-radius:50%;color:#fff;font-size:11.5px;font-weight:800;
+  ul{list-style:none;overflow-y:auto;flex:1 1 auto;-webkit-overflow-scrolling:touch}
+  li{display:flex;align-items:center;gap:11px;padding:10px 14px;border-bottom:1px solid #eef1f3;
+     cursor:pointer;border-left:4px solid transparent;transition:background .1s}
+  li:hover{background:#f4f6f8}
+  li.on{border-left-color:currentColor;background:#f4f6f8}
+  .num{flex:0 0 26px;height:26px;border-radius:50%;color:#fff;font-size:12px;font-weight:800;
        display:flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums}
-  .nm{flex:1;font-size:13.5px;font-weight:600;letter-spacing:-.3px;line-height:1.3}
-  .tm{flex:0 0 auto;font-size:13px;font-weight:800;color:#374151;font-variant-numeric:tabular-nums}
-  .est{display:inline-block;font-size:9.5px;font-weight:700;color:#b45309;background:#fef3c7;
-       border-radius:3px;padding:1px 4px;margin-left:4px;vertical-align:1px}
+  .nm{flex:1;font-size:14px;font-weight:700;letter-spacing:-.4px;color:#222}
+  .tm{flex:0 0 auto;font-size:13.5px;font-weight:800;color:#333;font-variant-numeric:tabular-nums}
+  .est{display:inline-block;font-size:10px;font-weight:700;color:#B45309;background:#FEF3C7;
+       border-radius:3px;padding:1px 5px;margin-left:5px;vertical-align:1.5px}
 
-  footer{flex:0 0 auto;padding:8px 14px;background:#f8f9fa;border-top:1px solid #e3e6ea;
-         font-size:11px;color:#8b95a1;text-align:center;line-height:1.5}
+  .foot{padding:9px 15px;background:#f8f9fa;border-top:1px solid #e6e9ec;
+        font-size:12px;color:#7b848d;text-align:center}
 
-  .bubble{padding:7px 11px;font-size:12.5px;font-weight:700;white-space:nowrap;line-height:1.4}
-  .bubble em{display:block;font-style:normal;font-weight:600;color:#4b5563;font-size:11.5px}
+  .bubble{padding:8px 12px;font-size:13px;font-weight:800;white-space:nowrap;line-height:1.45}
+  .bubble em{display:block;font-style:normal;font-weight:600;color:#555;font-size:12px;margin-top:1px}
 
   .err{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-       flex-direction:column;gap:8px;padding:24px;text-align:center;font-size:13px;color:#6b7280;
-       line-height:1.7;background:#f8f9fa}
-  .err b{color:#dc2626;font-size:14px}
+       flex-direction:column;gap:8px;padding:26px;text-align:center;font-size:13.5px;
+       color:#666;line-height:1.8;background:#f8f9fa}
+  .err b{color:#dc2626;font-size:14.5px}
 
   /* ── 모바일 ── */
-  @media (max-width:720px){
-    main{flex-direction:column}
-    #map{flex:0 0 46vh}
-    aside{flex:1 1 auto;border-left:none;border-top:1px solid #e3e6ea;width:100%}
-    h1{font-size:15.5px}
-    .tab{font-size:12.5px;padding:9px 2px 10px}
-    .tab small{font-size:9.5px}
-    li{padding:11px 13px}
-    .nm{font-size:14px}
+  @media (max-width:760px){
+    .wrap{padding:0 2px 14px}
+    .hero{padding:20px 20px 22px;border-radius:8px}
+    .hero h2{font-size:21px}
+    .hero p{font-size:13px}
+    .guides{grid-template-columns:1fr;gap:9px;margin-bottom:15px}
+    .g{padding:11px 14px}
+    .tabs{gap:5px}
+    .tab{font-size:12.5px;padding:10px 2px 11px;letter-spacing:-.7px}
+    .tab small{font-size:10px}
+    main{flex-direction:column;height:auto}
+    #map{height:330px;flex:none}
+    aside{flex:none;border-left:none;border-top:1px solid #e6e9ec;width:100%;height:340px}
+    .meta{font-size:12.5px}
+    li{padding:12px 13px}
   }
 </style>
 </head>
 <body>
+<div class="wrap">
 
-<header>
-  <h1>셔틀버스 운행 노선 <span>북원노인종합복지관</span></h1>
+  <div class="hero">
+    <span class="chip">기관소개</span>
+    <h2>셔틀버스 운행 노선</h2>
+    <p>북원노인종합복지관을 이용하시는 어르신들의 편안한 이동을 위해 셔틀버스를 운행하고 있습니다.
+       오전 두 개 코스와 오후 한 개 코스로 나누어 운행하며, 아래 지도에서 정류장 위치와 도착 시간을 확인하실 수 있습니다.</p>
+  </div>
+
+  <div class="guides">
+    <div class="g"><b>코스 선택</b><span>지도 위의 탭을 눌러 오전 1코스, 오전 2코스, 오후 코스를 각각 확인하실 수 있습니다.</span></div>
+    <div class="g"><b>정류장 확인</b><span>목록의 정류장을 누르면 지도에서 위치와 도착 시간을 확인할 수 있습니다.</span></div>
+    <div class="g"><b>이용 문의</b><span>셔틀버스 이용에 관한 문의는 북원노인종합복지관으로 연락 주세요.</span></div>
+  </div>
+
   <div class="tabs" id="tabs"></div>
-</header>
+  <div class="panel" id="panel">
+    <main>
+      <div id="map"></div>
+      <aside>
+        <div class="meta" id="meta"></div>
+        <ul id="list"></ul>
+      </aside>
+    </main>
+    <div class="foot">정류장을 누르면 지도에서 위치를 확인할 수 있습니다 · 도착시간은 교통상황에 따라 다소 달라질 수 있습니다</div>
+  </div>
 
-<main>
-  <div id="map"></div>
-  <aside>
-    <div class="meta" id="meta"></div>
-    <ul id="list"></ul>
-  </aside>
-</main>
-
-<footer>정류장을 누르면 지도에서 위치를 확인할 수 있습니다 · 도착시간은 교통상황에 따라 달라질 수 있습니다</footer>
+</div>
 
 <script>
 (function(){
   const mapEl=document.getElementById('map');
+  const HOME=ROUTE_DATA.stops.find(s=>s.name==='복지관');   // 1번 복지관 = 기본 중심
+  let map=null,overlays=[],bubble=null,cur=0,items=[];
 
   if(!KAKAO_APP_KEY || KAKAO_APP_KEY.indexOf('여기에')===0){
-    mapEl.style.position='relative';
     mapEl.innerHTML='<div class="err"><b>카카오 JavaScript 키가 설정되지 않았습니다</b>'
-      +'이 파일 상단의 <code>KAKAO_APP_KEY</code> 값을<br>카카오 개발자센터의 JavaScript 키로 바꿔주세요.</div>';
-    render(0,true); return;
+      +'이 파일 상단의 <code>KAKAO_APP_KEY</code> 값을 확인해 주세요.</div>';
+    render(0); return;
   }
 
   const sc=document.createElement('script');
   sc.src='//dapi.kakao.com/v2/maps/sdk.js?appkey='+KAKAO_APP_KEY+'&autoload=false';
-  sc.onerror=()=>{mapEl.style.position='relative';
-    mapEl.innerHTML='<div class="err"><b>지도를 불러올 수 없습니다</b>네트워크 상태 또는 도메인 등록 여부를 확인해주세요.</div>';
-    render(0,true);};
+  sc.onerror=()=>{mapEl.innerHTML='<div class="err"><b>지도를 불러올 수 없습니다</b>'
+    +'네트워크 상태 또는 도메인 등록 여부를 확인해 주세요.</div>'; render(0);};
   document.head.appendChild(sc);
   sc.onload=()=>kakao.maps.load(init);
 
-  let map,overlays=[],cur=0,items=[];
-
   function init(){
-    map=new kakao.maps.Map(mapEl,{center:new kakao.maps.LatLng(37.39,127.955),level:7});
+    map=new kakao.maps.Map(mapEl,{
+      center:new kakao.maps.LatLng(HOME.lat,HOME.lng),   // 복지관 중심에서 시작
+      level:6
+    });
     map.addControl(new kakao.maps.ZoomControl(),kakao.maps.ControlPosition.RIGHT);
     render(0);
+    // iframe 안에서 컨테이너 크기가 늦게 잡히는 경우 대비
+    const fix=()=>{ map.relayout(); map.setCenter(new kakao.maps.LatLng(HOME.lat,HOME.lng)); };
+    setTimeout(fix,150); setTimeout(fix,700);
+    window.addEventListener('resize',()=>map.relayout());
   }
 
-  function clear(){overlays.forEach(o=>o.setMap(null));overlays=[]}
+  function clear(){ overlays.forEach(o=>o.setMap(null)); overlays=[]; if(bubble){bubble.close();bubble=null} }
 
   function draw(idx){
     if(!map) return;
@@ -133,35 +167,34 @@
     const r=ROUTE_DATA.routes[idx];
     const path=r.stops.map(s=>new kakao.maps.LatLng(s.lat,s.lng));
 
-    // 진행 방향 경로선
     const line=new kakao.maps.Polyline({path:path,strokeWeight:5,strokeColor:r.color,
-      strokeOpacity:.85,strokeStyle:'solid',endArrow:true});
+      strokeOpacity:.88,strokeStyle:'solid',endArrow:true});
     line.setMap(map); overlays.push(line);
 
-    // 번호 마커
     r.stops.forEach((s,i)=>{
-      const first=r.stops.findIndex(x=>x.id===s.id)===i;
       const el=document.createElement('div');
-      el.style.cssText='width:25px;height:25px;border-radius:50%;background:'+r.color
-        +';color:#fff;font:800 11.5px/25px Malgun Gothic,sans-serif;text-align:center;'
-        +'box-shadow:0 1px 4px rgba(0,0,0,.4);border:2px solid #fff;cursor:pointer';
+      el.style.cssText='width:26px;height:26px;border-radius:50%;background:'+r.color
+        +';color:#fff;font:800 12px/26px Malgun Gothic,sans-serif;text-align:center;'
+        +'box-shadow:0 1px 4px rgba(0,0,0,.42);border:2px solid #fff;cursor:pointer';
       el.textContent=s.seq;
-      const ov=new kakao.maps.CustomOverlay({position:path[i],content:el,yAnchor:.5,zIndex:first?3:2});
+      const ov=new kakao.maps.CustomOverlay({position:path[i],content:el,yAnchor:.5,zIndex:2});
       ov.setMap(map); overlays.push(ov);
       el.onclick=e=>{e.stopPropagation();focus(i)};
     });
+  }
 
+  function fitAll(){
+    if(!map) return;
     const b=new kakao.maps.LatLngBounds();
-    path.forEach(p=>b.extend(p));
+    ROUTE_DATA.routes[cur].stops.forEach(s=>b.extend(new kakao.maps.LatLng(s.lat,s.lng)));
     map.setBounds(b,30,30,30,30);
   }
 
-  let bubble=null;
   function focus(i){
     const r=ROUTE_DATA.routes[cur],s=r.stops[i];
     items.forEach(x=>x.classList.remove('on'));
-    if(items[i]){items[i].classList.add('on');
-      items[i].scrollIntoView({block:'nearest',behavior:'smooth'})}
+    if(items[i]){ items[i].classList.add('on');
+      items[i].scrollIntoView({block:'nearest',behavior:'smooth'}); }
     if(!map) return;
     const pos=new kakao.maps.LatLng(s.lat,s.lng);
     if(bubble) bubble.close();
@@ -172,30 +205,38 @@
     map.panTo(pos);
   }
 
-  function render(idx,noMap){
+  function render(idx){
     cur=idx;
     const r=ROUTE_DATA.routes[idx];
 
-    document.getElementById('tabs').innerHTML=ROUTE_DATA.routes.map((x,i)=>
-      '<button class="tab'+(i===idx?' on':'')+'" data-i="'+i+'" style="'
-      +(i===idx?'border-bottom-color:'+x.color+';':'')+'">'+x.name
-      +'<small>'+x.sub+'</small></button>').join('');
-    document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>render(+t.dataset.i,noMap));
+    document.getElementById('tabs').innerHTML=ROUTE_DATA.routes.map((x,i)=>{
+      const on=i===idx;
+      const st=on ? 'background:'+x.color+';color:#fff;border-color:'+x.color
+                  : 'background:'+x.color+'14;color:'+x.color+';border-color:'+x.color+'44';
+      return '<button class="tab" data-i="'+i+'" style="'+st+'">'+x.name
+             +'<small>'+x.sub+'</small></button>';
+    }).join('');
+    document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>render(+t.dataset.i));
+    document.getElementById('panel').style.borderColor=r.color;
 
     const t0=r.stops[0].time,t1=r.stops[r.stops.length-1].time;
     document.getElementById('meta').innerHTML=
-      '<span>운행 <b>'+t0+' ~ '+t1+'</b></span><span>정차 <b>'+r.stops.length+'개소</b></span>';
+      '<span>운행 <b>'+t0+' ~ '+t1+'</b></span><span>정차 <b>'+r.stops.length+'개소</b></span>'
+      +'<button class="all" id="btnAll">전체 노선 보기</button>';
+    const ba=document.getElementById('btnAll'); if(ba) ba.onclick=fitAll;
 
     document.getElementById('list').innerHTML=r.stops.map((s,i)=>{
       const est=ROUTE_DATA.stops.find(x=>x.id===s.id).conf==='estimated';
-      return '<li data-i="'+i+'"><span class="num" style="background:'+r.color+'">'+s.seq+'</span>'
+      return '<li data-i="'+i+'" style="color:'+r.color+'">'
+        +'<span class="num" style="background:'+r.color+'">'+s.seq+'</span>'
         +'<span class="nm">'+s.name+(est?'<span class="est">위치확인</span>':'')+'</span>'
         +'<span class="tm">'+s.time+'</span></li>';
     }).join('');
     items=[...document.querySelectorAll('#list li')];
     items.forEach(li=>li.onclick=()=>focus(+li.dataset.i));
 
-    if(!noMap) draw(idx);
+    draw(idx);
+    if(map) map.setCenter(new kakao.maps.LatLng(HOME.lat,HOME.lng));   // 항상 복지관 기준
   }
 })();
 </script>
