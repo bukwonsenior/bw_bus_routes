@@ -64,4 +64,4 @@ python3 verify.py       # 시간 역행·거리 이상 점검
 
 - 지도: 카카오맵 JavaScript SDK
 - 카카오 개발자센터 앱: `북원노인종합복지관 후원업체 지도` (ID 1449580)
-- JS SDK 도메인에 `https://fangram8779-prog.github.io` 등록 필요
+- JS SDK 도메인에 `https://bukwonsenior.github.io` 등록 필요
