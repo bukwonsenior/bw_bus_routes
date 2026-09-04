@@ -6,13 +6,13 @@
 
 | 용도 | 주소 |
 |---|---|
-| 홈페이지 게시용 (모바일·PC 반응형) | `https://fangram8779-prog.github.io/bw_bus_routes/` |
-| 인쇄용 (A4 가로 3장) | `https://fangram8779-prog.github.io/bw_bus_routes/print.html` |
+| 홈페이지 게시용 (모바일·PC 반응형) | `https://bukwonsenior.github.io/bw_bus_routes/` |
+| 인쇄용 (A4 가로 3장) | `https://bukwonsenior.io/bw_bus_routes/print.html` |
 
 ### 홈페이지 삽입 코드
 
 ```html
-<iframe src="https://fangram8779-prog.github.io/bw_bus_routes/"
+<iframe src="https://bukwonseinor.io/bw_bus_routes/"
         style="width:100%;height:760px;border:1px solid #ddd;border-radius:8px"
         title="셔틀버스 운행 노선"></iframe>
 ```
