@@ -12,88 +12,89 @@
   const KAKAO_APP_KEY = "3e728a6e83cb38eec3d7a2321a5f0847";
 </script>
 
-<script src="route_data.js?v=61052924"></script>
+<script src="route_data.js?v=1634a993"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css">
 <style>
+  /* 다른 홈페이지 페이지(사업안내·프로그램 등)와 같은 글꼴·크기·정렬 */
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-  body{font-family:'Malgun Gothic','맑은 고딕',-apple-system,'Apple SD Gothic Neo',sans-serif;
-       color:#222;background:#fff;line-height:1.5}
+  body{font-family:'Pretendard','Apple SD Gothic Neo','맑은 고딕',sans-serif;
+       color:#2B2320;background:#fff;line-height:1.5;-webkit-font-smoothing:antialiased}
 
-  .wrap{max-width:1180px;margin:0 auto;padding:0 4px 18px}
+  .wrap{max-width:1400px;margin:0;padding:6px 16px 24px}
 
   /* ── 상단 배너 ── */
   .hero{background:linear-gradient(100deg,#EE7A16 0%,#F59B23 62%,#F8B03A 100%);
-        border-radius:10px;padding:26px 30px 28px;color:#fff;margin-bottom:16px}
+        border-radius:16px;padding:28px 32px 30px;color:#fff;margin-bottom:18px}
   .hero .chip{display:inline-block;background:rgba(255,255,255,.26);border-radius:20px;
-              padding:4px 15px;font-size:12.5px;font-weight:700;margin-bottom:11px}
-  .hero h2{font-size:27px;font-weight:800;letter-spacing:-1px;margin-bottom:9px}
-  .hero p{font-size:14px;font-weight:500;line-height:1.75;opacity:.97;max-width:860px}
+              padding:5px 14px;font-size:clamp(14.3px,calc(13.31px + 0.262vw),16.2px);font-weight:700;margin-bottom:12px}
+  .hero h2{font-size:clamp(29.7px,calc(27.61px + 0.543vw),33.6px);font-weight:800;letter-spacing:-.8px;margin-bottom:10px}
+  .hero p{font-size:clamp(17px,calc(15.78px + 0.31vw),19.2px);font-weight:500;line-height:1.65;opacity:.97;max-width:1000px;word-break:keep-all}
 
   /* ── 안내 박스 ── */
-  .guides{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-bottom:20px}
-  .g{background:#FEF6EC;border-left:4px solid #EE7A16;border-radius:5px;padding:14px 17px}
-  .g b{display:block;font-size:14px;font-weight:800;color:#D96A0B;margin-bottom:6px}
-  .g span{font-size:12.8px;color:#5a5a5a;line-height:1.65}
+  .guides{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px}
+  .g{background:#FEF6EC;border-left:4px solid #EE7A16;border-radius:10px;padding:16px 18px}
+  .g b{display:block;font-size:clamp(17px,calc(15.78px + 0.31vw),19.2px);font-weight:800;color:#C2410C;margin-bottom:6px}
+  .g span{font-size:clamp(15.9px,calc(14.79px + 0.291vw),18px);color:#5c554e;line-height:1.6;word-break:keep-all}
 
   /* ── 코스 탭 ── */
   .tabs{display:flex;gap:8px}
-  .tab{flex:1;padding:13px 6px 14px;border:2px solid transparent;border-bottom:none;
-       border-radius:9px 9px 0 0;font-family:inherit;font-size:15px;font-weight:800;
-       cursor:pointer;transition:.15s;line-height:1.3;letter-spacing:-.4px}
-  .tab small{display:block;font-size:11.5px;font-weight:600;opacity:.92;margin-top:3px}
+  .tab{flex:1;padding:14px 8px 15px;border:2px solid transparent;border-bottom:none;
+       border-radius:14px 14px 0 0;font-family:inherit;font-size:clamp(17px,calc(15.78px + 0.31vw),19.2px);font-weight:800;
+       cursor:pointer;transition:.15s;line-height:1.3;letter-spacing:-.4px;text-align:center}
+  .tab small{display:block;font-size:clamp(14.3px,calc(13.31px + 0.262vw),16.2px);font-weight:600;opacity:.92;margin-top:4px}
 
   /* ── 본문 ── */
-  .panel{border:2px solid;border-radius:0 0 10px 10px;overflow:hidden;background:#fff}
-  main{display:flex;height:560px}
+  .panel{border:2px solid;border-radius:0 0 14px 14px;overflow:hidden;background:#fff}
+  main{display:flex;height:640px}
   #map{flex:1 1 auto;background:#eef1f4;position:relative;min-width:0}
-  aside{flex:0 0 310px;display:flex;flex-direction:column;border-left:1px solid #e6e9ec;background:#fafbfc}
+  aside{flex:0 0 410px;display:flex;flex-direction:column;border-left:1px solid #e6e9ec;background:#fafbfc}
 
-  .meta{padding:11px 15px;background:#fff;border-bottom:1px solid #eceff1;font-size:13px;
-        color:#444;display:flex;align-items:center;gap:15px;flex-wrap:wrap}
+  .meta{padding:13px 16px;background:#fff;border-bottom:1px solid #eceff1;font-size:16px;
+        color:#444;display:flex;align-items:center;gap:14px;flex-wrap:wrap;white-space:nowrap}
   .meta b{font-weight:800;color:#111}
-  .meta .all{margin-left:auto;padding:5px 11px;border:1px solid #cfd4d9;background:#fff;
-             border-radius:5px;font-family:inherit;font-size:12px;font-weight:700;
+  .meta .all{margin-left:auto;padding:7px 13px;border:1px solid #cfd4d9;background:#fff;
+             border-radius:8px;font-family:inherit;font-size:14px;font-weight:700;
              color:#444;cursor:pointer;white-space:nowrap}
   .meta .all:hover{background:#f1f3f5}
 
   ul{list-style:none;overflow-y:auto;flex:1 1 auto;-webkit-overflow-scrolling:touch}
-  li{display:flex;align-items:center;gap:11px;padding:10px 14px;border-bottom:1px solid #eef1f3;
+  li{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #eef1f3;
      cursor:pointer;border-left:4px solid transparent;transition:background .1s}
   li:hover{background:#f4f6f8}
   li.on{border-left-color:currentColor;background:#f4f6f8}
-  .num{flex:0 0 26px;height:26px;border-radius:50%;color:#fff;font-size:12px;font-weight:800;
+  .num{flex:0 0 30px;height:30px;border-radius:50%;color:#fff;font-size:clamp(14.3px,calc(13.31px + 0.262vw),16.2px);font-weight:800;
        display:flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums}
-  .nm{flex:1;font-size:14px;font-weight:700;letter-spacing:-.4px;color:#222}
-  .tm{flex:0 0 auto;font-size:13.5px;font-weight:800;color:#333;font-variant-numeric:tabular-nums}
-  .est{display:inline-block;font-size:10px;font-weight:700;color:#B45309;background:#FEF3C7;
-       border-radius:3px;padding:1px 5px;margin-left:5px;vertical-align:1.5px}
+  .nm{flex:1;font-size:clamp(17px,calc(15.78px + 0.31vw),19.2px);font-weight:700;letter-spacing:-.3px;color:#222;word-break:keep-all}
+  .tm{flex:0 0 auto;font-size:clamp(17px,calc(15.78px + 0.31vw),19.2px);font-weight:800;color:#333;font-variant-numeric:tabular-nums;text-align:right}
+  .est{display:inline-block;font-size:12px;font-weight:700;color:#B45309;background:#FEF3C7;
+       border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:2px}
 
-  .foot{padding:9px 15px;background:#f8f9fa;border-top:1px solid #e6e9ec;
-        font-size:12px;color:#7b848d;text-align:center}
+  .foot{padding:11px 16px;background:#f8f9fa;border-top:1px solid #e6e9ec;
+        font-size:clamp(14.3px,calc(13.31px + 0.262vw),16.2px);color:#6B655F;text-align:center;word-break:keep-all}
 
-  .bubble{padding:8px 12px;font-size:13px;font-weight:800;white-space:nowrap;line-height:1.45}
-  .bubble em{display:block;font-style:normal;font-weight:600;color:#555;font-size:12px;margin-top:1px}
+  .bubble{padding:9px 13px;font-size:15px;font-weight:800;white-space:nowrap;line-height:1.45}
+  .bubble em{display:block;font-style:normal;font-weight:600;color:#555;font-size:13.5px;margin-top:1px}
 
   .err{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-       flex-direction:column;gap:8px;padding:26px;text-align:center;font-size:13.5px;
+       flex-direction:column;gap:8px;padding:26px;text-align:center;font-size:16px;
        color:#666;line-height:1.8;background:#f8f9fa}
-  .err b{color:#dc2626;font-size:14.5px}
+  .err b{color:#dc2626;font-size:17px}
 
   /* ── 모바일 ── */
   @media (max-width:760px){
-    .wrap{padding:0 2px 14px}
-    .hero{padding:20px 20px 22px;border-radius:8px}
-    .hero h2{font-size:21px}
-    .hero p{font-size:13px}
-    .guides{grid-template-columns:1fr;gap:9px;margin-bottom:15px}
-    .g{padding:11px 14px}
+    .wrap{padding:4px 12px 16px}
+    .hero{padding:22px 20px 24px;border-radius:14px}
+    .guides{grid-template-columns:1fr;gap:10px;margin-bottom:16px}
+    .g{padding:13px 15px}
     .tabs{gap:5px}
-    .tab{font-size:12.5px;padding:10px 2px 11px;letter-spacing:-.7px}
-    .tab small{font-size:10px}
+    .tab{font-size:15px;padding:11px 2px 12px;letter-spacing:-.6px}
+    .tab small{font-size:11.5px;letter-spacing:-.8px}
+    .hero p{font-size:15.5px}
+    .hero h2{font-size:25px}
     main{flex-direction:column;height:auto}
-    #map{height:330px;flex:none}
-    aside{flex:none;border-left:none;border-top:1px solid #e6e9ec;width:100%;height:340px}
-    .meta{font-size:12.5px}
-    li{padding:12px 13px}
+    #map{height:340px;flex:none}
+    aside{flex:none;border-left:none;border-top:1px solid #e6e9ec;width:100%;height:380px}
+    li{padding:13px 14px}
   }
 </style>
 </head>
