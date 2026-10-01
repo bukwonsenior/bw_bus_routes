@@ -12,7 +12,7 @@
   const KAKAO_APP_KEY = "3e728a6e83cb38eec3d7a2321a5f0847";
 </script>
 
-<script src="route_data.js?v=259e7a37"></script>
+<script src="route_data.js?v=61052924"></script>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
   body{font-family:'Malgun Gothic','맑은 고딕',-apple-system,'Apple SD Gothic Neo',sans-serif;
@@ -128,21 +128,36 @@
 </div>
 
 <script>
-(function(){
+// 편집기 규약: render(데이터) + BW_LOAD 마커 + window.__bwHi
+function render(ROUTE_DATA){
+  if(!ROUTE_DATA||!ROUTE_DATA.routes||!ROUTE_DATA.routes.length){ document.getElementById('list').innerHTML='<li>노선 정보를 불러오지 못했습니다.</li>'; return; }
   const mapEl=document.getElementById('map');
-  const HOME=ROUTE_DATA.stops.find(s=>s.name==='복지관');   // 1번 복지관 = 기본 중심
+  const HOME=ROUTE_DATA.stops.find(s=>s.name==='복지관')||ROUTE_DATA.stops[0];   // 1번 복지관 = 기본 중심
   let map=null,overlays=[],bubble=null,cur=0,items=[];
 
   if(!KAKAO_APP_KEY || KAKAO_APP_KEY.indexOf('여기에')===0){
     mapEl.innerHTML='<div class="err"><b>카카오 JavaScript 키가 설정되지 않았습니다</b>'
       +'이 파일 상단의 <code>KAKAO_APP_KEY</code> 값을 확인해 주세요.</div>';
-    render(0); return;
+    render(0); hook(); return;
   }
 
   const sc=document.createElement('script');
-  sc.src='//dapi.kakao.com/v2/maps/sdk.js?appkey='+KAKAO_APP_KEY+'&autoload=false';
+  sc.src='https://dapi.kakao.com/v2/maps/sdk.js?appkey='+KAKAO_APP_KEY+'&autoload=false';
   sc.onerror=()=>{mapEl.innerHTML='<div class="err"><b>지도를 불러올 수 없습니다</b>'
     +'네트워크 상태 또는 도메인 등록 여부를 확인해 주세요.</div>'; render(0);};
+  hook();
+  function hook(){   // 편집기 미리보기: 고치는 줄의 코스·정류장을 보여 줌
+    window.__bwHi=function(m){
+      let ri=-1,si=-1;
+      if(m.key&&m.key.indexOf('s:')===0){ const nm=m.key.slice(2); ROUTE_DATA.routes.some((r,i)=>{const j=r.stops.findIndex(x=>x.name===nm); if(j>=0){ri=i;si=j;return true;} return false;}); }
+      else if(m.key&&m.key.indexOf('c:')===0){ const p=m.key.split(':'); ri=ROUTE_DATA.routes.findIndex(r=>r.name===p[1]); si=p[2]==='info'?-1:+p[2]; }
+      if(ri<0) return true;
+      if(ri!==cur) render(ri);
+      if(si>=0){ focus(si); if(items[si]) items[si].classList.add('bwhi'); }
+      else { const tb=document.querySelectorAll('.tab')[ri]; if(tb) tb.classList.add('bwhi'); }
+      return true;
+    };
+  }
   document.head.appendChild(sc);
   sc.onload=()=>kakao.maps.load(init);
 
@@ -238,7 +253,8 @@
     draw(idx);
     if(map) map.setCenter(new kakao.maps.LatLng(HOME.lat,HOME.lng));   // 항상 복지관 기준
   }
-})();
+}
+/*BW_LOAD*/render(typeof ROUTE_DATA!=='undefined'?ROUTE_DATA:null);/*BW_LOAD_END*/
 </script>
 </body>
 </html>

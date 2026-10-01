@@ -1,115 +1,174 @@
 # -*- coding: utf-8 -*-
-# 노선 데이터 생성 스크립트
-#  - STOPS  : 정류장 마스터 (정류장번호 = 원주시 BIS 정류장 ID)
-#  - R_AM1 / R_AM2 / R_PM : 코스별 (stop_id, 시각) 순서
-# 수정 후 `python3 build_data.py` 실행 → route_data.js / routes.json / CSV 재생성
-import csv, json, os
+"""
+셔틀버스_노선관리.xlsx  ->  route_data.js / routes.json / stops.csv / routes_수정본.csv
 
-OUT = os.path.dirname(os.path.abspath(__file__))
+담당자는 엑셀(또는 홈페이지 편집기)만 고친다. GitHub Actions가 이 스크립트를 돌린다.
+- '정류장' 시트: 번호 | 정류장명 | 정류장번호 | 위도 | 경도 | 주소 | 비고 | 좌표확인
+    정류장번호(5자리 BIS)만 넣으면 위도·경도는 '원주시_버스정류장_좌표.csv'에서 자동으로 채운다(엑셀에도 써 넣음).
+- '코스' 시트: 게시 | 코스 | 종류(코스정보/정차) | 정류장명 | 시각 | 설명 | 색상
+검사: 시간 역행·형식 오류·없는 정류장 → 멈춤(홈페이지 그대로). 속도 이상 → 경고만.
+"""
+import csv, json, math, os, re, sys, hashlib
+import openpyxl
 
-# stop_id, 정류장명, 위도, 경도, 정류장번호(BIS), 주소, 좌표신뢰도, 비고
-STOPS = [
- (1,'복지관',37.3821329,127.9529756,'','원주시 흥양로50번길 5','confirmed','북원노인종합복지관'),
- (2,'우성아파트',37.396215,127.951791,'63029','원주시 적동1길 7','confirmed','정류장번호 63029'),
- (3,'태장농공단지',37.402079,127.953695,'63011','원주시 태장동','confirmed','정류장번호 63011'),
- (4,'영진1차아파트',37.410955,127.960078,'31053','원주시 소초면 장막2길 12','confirmed','정류장번호 31053 / BIS명: 영진아파트'),
- (5,'원대',37.41833,127.962869,'31058','원주시 소초면 장양리','confirmed','정류장번호 31058'),
- (6,'장양리차고지',37.420357,127.963514,'31074','원주시 소초면 장양리','confirmed','정류장번호 31074'),
- (7,'양촌',37.420976,127.968637,'80761','원주시 소초면','confirmed','정류장번호 80761'),
- (8,'새섬배',37.41963,127.982089,'80759','원주시 소초면 평장리','confirmed','정류장번호 80759'),
- (9,'윗섬배',37.419102,127.991546,'80762','원주시 소초면 평장리','confirmed','정류장번호 80762'),
- (10,'소초면 행정복지센터',37.417718,128.001245,'31030','원주시 소초면 치악로 2790','confirmed','정류장번호 31030'),
- (11,'수암4리',37.412535,127.997252,'31042','원주시 소초면 수암리 1033','confirmed','정류장번호 31042'),
- (12,'식송',37.402775,127.992637,'31047','원주시 소초면 수암리','confirmed','정류장번호 31047'),
- (13,'원증거리',37.396611,127.987501,'31061','원주시 소초면 수암리','confirmed','정류장번호 31061'),
- (14,'원주성모병원',37.392964,127.984302,'31068','원주시 소초면 치악로 2473','confirmed','정류장번호 31068'),
- (15,'돌모루',37.386195,127.977641,'31020','원주시 소초면 흥양리','confirmed','정류장번호 31020'),
- (16,'송문사거리',37.380418,127.972598,'68240','원주시 소초면 흥양리','confirmed','정류장번호 68240'),
- (17,'행복주택8단지',37.370817,127.965502,'63005','원주시 소일마을2길 60','confirmed','정류장번호 63005'),
- (18,'칸타빌더포레스트',37.36914,127.960497,'63019','원주시 소일마을2길 11','confirmed','정류장번호 63019'),
- (19,'성호아파트',37.362819,127.962051,'63017','원주시 치악로 2045','confirmed','정류장번호 63017'),
- (20,'태장중학교',37.359083,127.958432,'63052','원주시 치악로 2006','confirmed','정류장번호 63052'),
- (21,'KBS송신소',37.359361,127.954559,'63002','원주시 태장동','confirmed','정류장번호 63002'),
- (22,'현충탑',37.363758,127.952739,'63062','원주시 태장동 산124-2','confirmed','정류장번호 63062'),
- (23,'영진2차아파트',37.36762,127.950956,'63025','원주시 현충로 155','confirmed','정류장번호 63025 / BIS명: 영진아파트'),
- (24,'태장이편한세상아파트',37.372711,127.94985,'68408','원주시 현충로232번길 42','confirmed','정류장번호 68408 / BIS명: 이편한세상'),
- (25,'상록아파트',37.374426,127.951176,'58006','원주시 현충로 234','confirmed','정류장번호 58006'),
- (26,'금광포란재아파트',37.376239,127.954733,'63008','원주시 포란재로 36','confirmed','정류장번호 63008'),
- (27,'가현동',37.386021,127.945142,'10142','원주시 가현동','confirmed','정류장번호 10142'),
- (28,'코아텍',37.3943308,127.9380052,'','원주시 가현동 214','confirmed','엑셀 제공 좌표'),
- (29,'주산1리',37.408386,127.928607,'32060','원주시 호저면 호저문화1길 34','confirmed','정류장번호 32060'),
- (30,'호저농협',37.411295,127.925847,'32075','원주시 호저면 호저로 437','confirmed','정류장번호 32075'),
- (31,'문화마을',37.415223,127.923956,'68230','원주시 호저면 주산리','confirmed','정류장번호 68230'),
- (32,'호저중학교',37.417659,127.923279,'80810','원주시 호저면 호저로 507','confirmed','정류장번호 80810'),
- (33,'중방마을',37.402302,127.931756,'32062','원주시 호저면 주산리','confirmed','정류장번호 32062'),
- (34,'진광중고등학교',37.371896,127.937325,'61045','원주시 진광길 50','confirmed','정류장번호 61045'),
- (35,'상지대학교',37.369303,127.936719,'61029','원주시 우산동 667','confirmed','정류장번호 61029'),
- (36,'동우아파트',37.36545,127.935839,'61021','원주시 북원로2475번길 75','confirmed','정류장번호 61021'),
- (37,'우산동 삼호아파트 정문',37.3626987,127.9380741,'','원주시 우산동 129-3','confirmed','엑셀 제공 좌표'),
- (38,'삼한주유소',37.367639,127.940819,'61027','원주시 북원로 2509','confirmed','정류장번호 61027'),
- (39,'현대자동차',37.371989,127.942157,'61052','원주시 북원로','confirmed','정류장번호 61052 / BIS명: 현대자동차(상공회의소)'),
- (40,'우리병원',37.373446,127.943021,'61051','원주시 북원로 2572','confirmed','정류장번호 61051'),
- (41,'가현교',37.395606,127.93673,'68232','원주시 가현동','confirmed','정류장번호 68232'),
- (42,'장양초등학교',37.399388,127.952816,'63033','원주시 북원로 2868','confirmed','정류장번호 63033'),
-]
+OUT  = os.path.dirname(os.path.abspath(__file__))
+XLSX = os.path.join(OUT, "셔틀버스_노선관리.xlsx")
+BIS_CSV = os.path.join(OUT, "원주시_버스정류장_좌표.csv")
+KNOWN_ID = {"오전 1코스": "am1", "오전 2코스": "am2", "오후 코스": "pm"}   # 기존 코스 id 유지
+TIME = re.compile(r"^([01]\d|2[0-3]):[0-5]\d$")
+COLOR = re.compile(r"^#[0-9A-Fa-f]{6}$")
+DEFAULT_COLORS = ["#E8442E", "#1F6FEB", "#1D8348", "#8E44AD", "#D35400", "#16A085"]
 
-R_AM1 = [(1,'07:50'),(2,'08:00'),(3,'08:02'),(4,'08:04'),(5,'08:06'),(6,'08:08'),(7,'08:10'),
- (8,'08:12'),(9,'08:14'),(10,'08:18'),(11,'08:19'),(12,'08:20'),(13,'08:22'),(14,'08:24'),
- (15,'08:26'),(16,'08:28'),(17,'08:32'),(18,'08:34'),(19,'08:36'),(20,'08:38'),(21,'08:42'),
- (22,'08:44'),(23,'08:46'),(24,'08:48'),(25,'08:50'),(26,'08:52'),(1,'09:00')]
+errors, warns = [], []
+def s(v):
+    if v is None: return ""
+    if isinstance(v, float) and v.is_integer(): v = int(v)
+    return str(v).strip()
+def as_time(v):
+    if hasattr(v, "hour") and hasattr(v, "minute"): return f"{v.hour:02d}:{v.minute:02d}"
+    if isinstance(v, float) and 0 <= v < 1:   # 엑셀이 시각을 숫자로 저장한 경우
+        m = round(v * 1440); return f"{m // 60:02d}:{m % 60:02d}"
+    t = s(v)
+    m = re.match(r"^(\d{1,2}):(\d{2})$", t)
+    return f"{int(m.group(1)):02d}:{m.group(2)}" if m else t
+def mins(t): h, m = t.split(":"); return int(h) * 60 + int(m)
+def hav(a, b, c, e):
+    p = math.radians; dlat = p(c - a); dlon = p(e - b)
+    x = math.sin(dlat / 2) ** 2 + math.cos(p(a)) * math.cos(p(c)) * math.sin(dlon / 2) ** 2
+    return 2 * 6371.0 * math.asin(math.sqrt(x))
 
-R_AM2 = [(1,'09:05'),(27,'09:10'),(28,'09:12'),(29,'09:14'),(30,'09:16'),(31,'09:18'),(32,'09:20'),
- (33,'09:24'),(34,'09:30'),(35,'09:32'),(36,'09:34'),(37,'09:36'),(38,'09:40'),(39,'09:42'),
- (40,'09:44'),(1,'09:50')]
+def head_ix(ws, need, sheet):
+    head = [s(c.value) for c in ws[4]]
+    for h in need:
+        if h not in head: errors.append(f"'{sheet}' 시트 4행에 '{h}' 칸이 없습니다. 칸 이름을 바꾸지 마세요.")
+    return {h: head.index(h) for h in head if h}
 
-R_PM = [(1,'13:30'),(27,'13:36'),(28,'13:38'),(29,'13:40'),(30,'13:42'),(31,'13:44'),(32,'13:46'),
- (33,'13:50'),(41,'13:52'),(42,'13:54'),(3,'13:56'),(4,'13:58'),(5,'14:00'),(6,'14:02'),(7,'14:06'),
- (8,'14:08'),(9,'14:10'),(10,'14:14'),(11,'14:16'),(12,'14:18'),(13,'14:20'),(14,'14:22'),(15,'14:24'),
- (16,'14:26'),(17,'14:30'),(18,'14:32'),(19,'14:34'),(20,'14:36'),(21,'14:38'),(22,'14:40'),(23,'14:42'),
- (24,'14:44'),(25,'14:46'),(26,'14:48'),(1,'15:00')]
+def main():
+    if not os.path.exists(XLSX):
+        print(f"::error::{os.path.basename(XLSX)} 파일이 없습니다."); sys.exit(1)
+    wb = openpyxl.load_workbook(XLSX)
+    for n in ("정류장", "코스"):
+        if n not in wb.sheetnames: print(f"::error::'{n}' 시트가 없습니다."); sys.exit(1)
 
-ROUTES = [
- ('am1','오전 1코스','태장·소초 방면 (등원)','#E8442E',R_AM1),
- ('am2','오전 2코스','호저 방면 (등원)','#1F6FEB',R_AM2),
- ('pm','오후 코스','전체 방면 (퇴원)','#1D8348',R_PM),
-]
+    bis = {}
+    if os.path.exists(BIS_CSV):
+        for r in csv.DictReader(open(BIS_CSV, encoding="utf-8-sig")):
+            if r.get("모바일단축번호") and r["모바일단축번호"] != "0":
+                bis[r["모바일단축번호"]] = (float(r["위도"]), float(r["경도"]))
 
-with open(os.path.join(OUT,'stops.csv'),'w',newline='',encoding='utf-8-sig') as f:
-    w=csv.writer(f); w.writerow(['stop_id','정류장명','위도','경도','정류장번호','주소','좌표신뢰도','비고'])
-    for s in STOPS: w.writerow(s)
+    # ---- 정류장 ----
+    ws = wb["정류장"]
+    ix = head_ix(ws, ["번호", "정류장명", "정류장번호", "위도", "경도", "주소", "비고"], "정류장")
+    if errors: [print("::error::" + e) for e in errors]; sys.exit(1)
+    col = lambda row, h: s(row[ix[h]].value) if h in ix and ix[h] < len(row) else ""
+    stops, byname, used_ids, pending_id = [], {}, set(), []
+    for r in range(5, ws.max_row + 1):
+        row = ws[r]
+        if not any(s(c.value) for c in row): continue
+        name = col(row, "정류장명")
+        if not name: errors.append(f"정류장 {r}행: 정류장명이 비어 있습니다"); continue
+        if name in byname: errors.append(f"정류장 {r}행: '{name}' 이름이 {byname[name]['_row']}행에도 있습니다 (이름은 겹치면 안 돼요)"); continue
+        no, b = col(row, "정류장번호").replace(".0", ""), None
+        lat, lng = col(row, "위도"), col(row, "경도")
+        if not (lat and lng):
+            if no and no in bis:
+                lat, lng = bis[no]
+                ws.cell(r, ix["위도"] + 1, lat); ws.cell(r, ix["경도"] + 1, lng)
+                b = True
+            else:
+                errors.append(f"정류장 {r}행: '{name}' 위치를 모릅니다 → 정류장번호(5자리)를 넣거나 위도·경도를 직접 넣어 주세요"
+                              + (f" (정류장번호 {no} 는 원주시 목록에 없음)" if no else "")); continue
+        try: lat, lng = float(lat), float(lng)
+        except ValueError: errors.append(f"정류장 {r}행: 위도·경도는 숫자로 (지금: {lat}, {lng})"); continue
+        if not (37.20 <= lat <= 37.55 and 127.75 <= lng <= 128.15):
+            warns.append(f"정류장 {r}행: '{name}' 좌표가 원주시 범위 밖입니다 ({lat}, {lng})")
+        sid = col(row, "번호")
+        st = {"_row": r, "id": int(float(sid)) if sid.replace(".", "").isdigit() else None, "name": name, "lat": lat, "lng": lng,
+              "bis": no, "addr": col(row, "주소"), "conf": col(row, "좌표확인") or "confirmed", "note": col(row, "비고")}
+        if b: st["_filled"] = True
+        if st["id"] is not None:
+            if st["id"] in used_ids: errors.append(f"정류장 {r}행: 번호 {st['id']} 이(가) 겹칩니다")
+            used_ids.add(st["id"])
+        else: pending_id.append(st)
+        stops.append(st); byname[name] = st
+    nxt = max(used_ids or {0}) + 1
+    for st in pending_id:   # 번호 빈 새 정류장 → 자동 번호 (엑셀에도 기록)
+        st["id"] = nxt; ws.cell(st["_row"], ix["번호"] + 1, nxt); nxt += 1; st["_filled"] = True
 
-smap={s[0]:s for s in STOPS}
-data={'stops':[{'id':s[0],'name':s[1],'lat':s[2],'lng':s[3],'bis':s[4],'addr':s[5],'conf':s[6],'note':s[7]} for s in STOPS],
-      'routes':[]}
-for rid,name,sub,color,seq in ROUTES:
-    data['routes'].append({'id':rid,'name':name,'sub':sub,'color':color,
-        'stops':[{'seq':i+1,'id':sid,'name':smap[sid][1],'time':t,
-                  'lat':smap[sid][2],'lng':smap[sid][3],'bis':smap[sid][4]} for i,(sid,t) in enumerate(seq)]})
+    # ---- 코스 ----
+    wc = wb["코스"]
+    cx = head_ix(wc, ["게시", "코스", "종류", "정류장명", "시각", "설명", "색상"], "코스")
+    if errors: [print("::error::" + e) for e in errors]; sys.exit(1)
+    routes, rmap = [], {}
+    for r in range(5, wc.max_row + 1):
+        row = wc[r]
+        if not any(s(c.value) for c in row): continue
+        g = lambda h: s(row[cx[h]].value) if cx[h] < len(row) else ""
+        if g("게시").upper() in ("X", "×"): continue
+        cname, kind = g("코스"), g("종류")
+        if not cname: errors.append(f"코스 {r}행: 코스 칸이 비어 있습니다"); continue
+        if cname not in rmap:
+            rmap[cname] = {"id": KNOWN_ID.get(cname, f"c{len(routes) + 1}"), "name": cname, "sub": "",
+                           "color": DEFAULT_COLORS[len(routes) % len(DEFAULT_COLORS)], "seq": []}
+            routes.append(rmap[cname])
+        R = rmap[cname]
+        if kind == "코스정보":
+            R["sub"] = g("설명")
+            c = g("색상")
+            if c:
+                if COLOR.match(c): R["color"] = c.upper()
+                else: errors.append(f"코스 {r}행: 색상은 #E8442E 처럼 써 주세요 (지금: {c})")
+        elif kind == "정차":
+            nm, t = g("정류장명"), as_time(row[cx["시각"]].value)
+            if nm not in byname: errors.append(f"코스 {r}행: 정류장 '{nm}' 이(가) 정류장 시트에 없습니다"); continue
+            if not TIME.match(t): errors.append(f"코스 {r}행: 시각은 07:50 처럼 써 주세요 (지금: '{t}')"); continue
+            if R["seq"] and mins(t) < mins(R["seq"][-1][1]):
+                errors.append(f"코스 {r}행: {cname} '{nm}' {t} 이(가) 앞 정류장({R['seq'][-1][0]['name']} {R['seq'][-1][1]})보다 빠릅니다 (시간 역행)")
+            R["seq"].append((byname[nm], t))
+        else:
+            errors.append(f"코스 {r}행: 종류는 코스정보 / 정차 중 하나 (지금: '{kind}')")
+    for R in routes:
+        if len(R["seq"]) < 2: errors.append(f"코스 '{R['name']}' 에 정차 줄이 2개 이상 있어야 합니다")
+        for (a, ta), (b, tb) in zip(R["seq"], R["seq"][1:]):   # 속도 점검(경고)
+            km, dt = hav(a["lat"], a["lng"], b["lat"], b["lng"]), mins(tb) - mins(ta)
+            if dt > 0 and km / (dt / 60) > 75: warns.append(f"{R['name']} {a['name']}→{b['name']}: {km:.1f}km를 {dt}분 (속도 과다 — 시각 확인)")
+            if dt == 0 and km > 0.6: warns.append(f"{R['name']} {a['name']}→{b['name']}: 같은 시각인데 {km:.1f}km 떨어져 있음")
 
-with open(os.path.join(OUT,'route_data.js'),'w',encoding='utf-8') as f:
-    f.write('// 노선 데이터 - 정류장 순서/시간만 여기서 수정하면 지도와 시간표가 함께 갱신됩니다.\n')
-    f.write('const ROUTE_DATA = '+json.dumps(data,ensure_ascii=False,indent=1)+';\n')
+    if errors:
+        print("\n엑셀에서 고쳐야 할 곳이 있습니다. 노선도는 그대로 둡니다.\n")
+        for e in errors: print("  ✗ " + e)
+        print(f"::error::엑셀 오류 {len(errors)}건"); sys.exit(1)
 
-with open(os.path.join(OUT,'routes.json'),'w',encoding='utf-8') as f:
-    json.dump(data,f,ensure_ascii=False,indent=1)
+    if any(st.get("_filled") for st in stops):
+        wb.save(XLSX); print("  · 엑셀에 좌표·번호 자동 채움:", ", ".join(st["name"] for st in stops if st.get("_filled")))
 
-with open(os.path.join(OUT,'routes_수정본.csv'),'w',newline='',encoding='utf-8-sig') as f:
-    w=csv.writer(f); w.writerow(['코스','순번','정류장명','시간','stop_id','정류장번호','좌표신뢰도'])
-    for rid,name,sub,color,seq in ROUTES:
-        for i,(sid,t) in enumerate(seq):
-            w.writerow([name,i+1,smap[sid][1],t,sid,smap[sid][4],smap[sid][6]])
+    # ---- 출력 (기존과 같은 형식) ----
+    with open(os.path.join(OUT, "stops.csv"), "w", newline="", encoding="utf-8-sig") as f:
+        w = csv.writer(f); w.writerow(["stop_id", "정류장명", "위도", "경도", "정류장번호", "주소", "좌표신뢰도", "비고"])
+        for st in stops: w.writerow([st["id"], st["name"], st["lat"], st["lng"], st["bis"], st["addr"], st["conf"], st["note"]])
+    data = {"stops": [{"id": st["id"], "name": st["name"], "lat": st["lat"], "lng": st["lng"], "bis": st["bis"],
+                       "addr": st["addr"], "conf": st["conf"], "note": st["note"]} for st in stops], "routes": []}
+    for R in routes:
+        data["routes"].append({"id": R["id"], "name": R["name"], "sub": R["sub"], "color": R["color"],
+            "stops": [{"seq": i + 1, "id": st["id"], "name": st["name"], "time": t, "lat": st["lat"], "lng": st["lng"], "bis": st["bis"]}
+                      for i, (st, t) in enumerate(R["seq"])]})
+    js = ("// 노선 데이터 - 자동 생성 파일입니다. 셔틀버스_노선관리.xlsx(또는 홈페이지 편집기)를 고치세요.\n"
+          "const ROUTE_DATA = " + json.dumps(data, ensure_ascii=False, indent=1) + ";\n")
+    open(os.path.join(OUT, "route_data.js"), "w", encoding="utf-8").write(js)
+    json.dump(data, open(os.path.join(OUT, "routes.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    with open(os.path.join(OUT, "routes_수정본.csv"), "w", newline="", encoding="utf-8-sig") as f:
+        w = csv.writer(f); w.writerow(["코스", "순번", "정류장명", "시간", "stop_id", "정류장번호", "좌표신뢰도"])
+        for R in routes:
+            for i, (st, t) in enumerate(R["seq"]): w.writerow([R["name"], i + 1, st["name"], t, st["id"], st["bis"], st["conf"]])
+    ver = hashlib.md5(js.encode("utf-8")).hexdigest()[:8]   # 캐시 무효화
+    for fn in ("index.html", "print.html"):
+        p = os.path.join(OUT, fn)
+        if not os.path.exists(p): continue
+        h = open(p, encoding="utf-8").read()
+        n = re.sub(r"route_data\.js(\?v=[0-9a-f]+)?", "route_data.js?v=" + ver, h)
+        if n != h: open(p, "w", encoding="utf-8").write(n)
+    for w_ in warns: print("::warning::" + w_)
+    print(f"✓ 정류장 {len(stops)}곳 | " + " / ".join(f"{R['name']} {len(R['seq'])}개소" for R in routes) + f" | 캐시 {ver}")
 
-# ── 캐시 무효화: 데이터가 바뀌면 HTML의 route_data.js 버전을 자동 갱신 ──
-import hashlib, re as _re
-_js=open(os.path.join(OUT,'route_data.js'),encoding='utf-8').read()
-_ver=hashlib.md5(_js.encode('utf-8')).hexdigest()[:8]
-for _f in ('index.html','print.html'):
-    _p=os.path.join(OUT,_f)
-    if not os.path.exists(_p): continue
-    _h=open(_p,encoding='utf-8').read()
-    _n=_re.sub(r'route_data\.js(\?v=[0-9a-f]+)?', 'route_data.js?v='+_ver, _h)
-    if _n!=_h: open(_p,'w',encoding='utf-8').write(_n)
-print('캐시 버전:',_ver)
-
-print('stops',len(STOPS),'| ',' / '.join('%s %d개소'%(n,len(s)) for _,n,_,_,s in ROUTES))
-print('좌표 추정:',[s[1] for s in STOPS if s[6]=='estimated'])
+if __name__ == "__main__":
+    main()
