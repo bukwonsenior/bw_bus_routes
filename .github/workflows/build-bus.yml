@@ -1,0 +1,34 @@
+name: 셔틀버스 엑셀 → 노선도
+
+on:
+  push:
+    paths:
+      - "셔틀버스_노선관리.xlsx"
+      - "build_data.py"
+      - ".github/workflows/build-bus.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install openpyxl
+      - run: python build_data.py
+      - name: 바뀐 내용 저장
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add route_data.js routes.json stops.csv routes_수정본.csv index.html print.html "셔틀버스_노선관리.xlsx"
+          if git diff --cached --quiet; then
+            echo "바뀐 내용이 없습니다."; exit 0
+          fi
+          git commit -m "셔틀버스 자동 갱신"
+          git pull --rebase --autostash origin main
+          git push
